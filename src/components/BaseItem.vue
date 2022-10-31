@@ -1,46 +1,44 @@
 <template>
-  <v-card :variant="expand ? 'tonal' : 'text'" :color="!!item.actual_end ? 'success' : undefined"
-    @click="$emit('expand', this.item, this.expand)">
-    <v-card-title class="d-flex align-center">
-      <v-list-item-action v-if="item.budget" start>
-        <v-checkbox-btn :model-value="!!item.actual_end" @update:modelValue="$emit('item-check', item, $event)"
-          @click.stop="" :disabled="item.type === 'project' || !item.started" />
+  <v-card :variant="'tonal'" :color="getColor" @dblclick="$emit('edit', item)" @click="itemClicked">
+    <v-card-text class="d-flex align-center text-h6 font-weight-regular">
+
+      <v-list-item-action start>
+        <v-checkbox-btn v-if="itemStarted" :model-value="itemDone" class="text-h5 mr-2"
+          @update:modelValue="$emit('item-check', item, $event)" @click.stop="" />
+        <v-chip>{{ budget }}</v-chip>
+        <v-chip v-if="item.type === 'task'" class="ml-1">{{ actual_budget }}</v-chip>
       </v-list-item-action>
 
-      {{ item.name }}
-      
-      <v-spacer />
-      
-      <span v-if="!expand">
-        <v-icon left icon="mdi-cash" />{{ item.budget ? getMoney(item.budget) : getMoney(item.cost) }}
-      </span>
-      <v-btn v-else prepend-icon="mdi-cog" color="secondary" variant="text" @click.stop="$emit('edit', item)">Edit
-      </v-btn>
-    </v-card-title>
 
-    <v-expand-transition>
-      <div v-if="expand">
-        <v-card-text v-if="item.budget" class="pt-0 text-body-1">
-          <v-row>
-            <v-col>
-              <v-list-item>Start: {{ item.start }}</v-list-item>
-              <v-list-item>End: {{ item.end }}</v-list-item>
-              <v-list-item>Budget: {{ getMoney(item.budget) }}</v-list-item>
-              <v-list-item v-if="item.remaining_budget >= 0">Remaining Budget: {{ getMoney(item.remaining_budget) }}</v-list-item>
-            </v-col>
-            <v-col>
-              <v-list-item>Acutal Start: {{ item.actual_start }}</v-list-item>
-              <v-list-item>Acutal End: {{ item.actual_end }}</v-list-item>
-              <v-list-item>Acutal Budget: {{ getMoney(item.actual_budget) }}</v-list-item>
-            </v-col>
-          </v-row>
-        </v-card-text>
+      <span>{{ item.name }}</span>
+      <v-spacer />
+
+      <div class="text-subtitle-1">
+        <template v-if="item.type === 'task' && itemStarted">
+          <v-icon icon="mdi-calendar-start" size="small" />
+          {{ GetDate.string(item.actual_start, 'mm-d') }}
+
+          <template v-if="itemDone">
+            <v-icon icon="mdi-calendar-end" size="small" />
+            {{ GetDate.string(item.actual_end, 'mm-d') }}
+          </template>
+        </template>
+
+        <template v-else-if="item.type === 'task'">
+          <v-icon icon="mdi-calendar-start" size="small" />
+          {{ GetDate.string(item.start, 'mm-d') }}
+
+          <v-icon icon="mdi-calendar-end" size="small" />
+          {{ GetDate.string(item.end, 'mm-d') }}
+        </template>
       </div>
-    </v-expand-transition>
+    </v-card-text>
   </v-card>
 </template>
 
 <script>
+import { currency, GetDate } from '@/helpers/helpers.js'
+
 export default {
   props: {
     item: Object,
@@ -49,12 +47,37 @@ export default {
   data: () => ({
     box: false
   }),
+  computed: {
+    GetDate() {
+      return GetDate
+    },
+    currency() {
+      return currency
+    },
+    itemStarted() {
+      return !!this.item.actual_start
+    },
+    itemDone() {
+      return !!this.item.actual_end
+    },
+    budget() {
+      const { budget, cost } = this.item
+      return budget ? currency.USD(budget) : currency.USD(cost)
+    },
+    actual_budget() {
+      return currency.USD(this.item.actual_budget || 0)
+    },
+    getColor() {
+      if (this.expand) return 'primary'
+      else if (this.itemDone) return 'success'
+      else if (!this.itemStarted && this.item.type !== 'resource') return 'blue'
+      else return undefined
+    },
+
+  },
   methods: {
-    getMoney(val) {
-      val = String(val)
-      if (val.length > 3)
-        return `$${val.slice(0, val.length - 3)},${val.slice(val.length - 3)}`
-      else return `$${val}`
+    itemClicked() {
+      return this.item.type === 'task' ? this.$emit('expand', this.item, this.expand) : undefined
     }
   }
 }
