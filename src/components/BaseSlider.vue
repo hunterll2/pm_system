@@ -1,22 +1,21 @@
 <template>
-  <v-slider :model-value="value" :min="getMin" :max="getMax" :thumb-label="!hideLabel ? 'always' : undefined" readonly
-    :show-ticks="showTicks ? 'always' : undefined" :ticks="get_ticks" >
-    <template #prepend>
+  <v-slider :model-value="value" :min="getMin" :max="getMax" :thumb-label="!hideLabel && !(getMin === getMax) ? 'always' : undefined" readonly
+    :show-ticks="showTicks ? 'always' : undefined" :ticks="get_ticks" :thumb-size="getMin === getMax ? 0 : 20"
+    track-size="8" v-bind="getColors">
+    <template v-if="!hideMin" #prepend>
       <v-chip label large :color="minColor">
         <template v-if="type === 'budget'">{{ currency.USD(min) }}</template>
-        <template v-else>{{ GetDate.string(min) }}</template>
+        <template v-else>{{ GetDate.string(min, 'y-mm-d') }}</template>
       </v-chip>
     </template>
     <template v-if="!hideLabel" #thumb-label>
-      <div style="width:80px" class="text-center">
-        <template v-if="type === 'budget'">{{ currency.USD(value) }}</template>
-        <template v-else>{{ `Today ${GetDate.string(value, 'm-d')}` }}</template>
-      </div>
+      <template v-if="type === 'budget'">{{ currency.USD(value) }}</template>
+      <template v-else>{{ `${GetDate.string(value, 'mm-d')}` }}</template>
     </template>
     <template v-if="!hideMax" #append>
       <v-chip label large :color="maxColor">
         <template v-if="type === 'budget'">{{ currency.USD(max) }}</template>
-        <template v-else>{{ GetDate.string(max) }}</template>
+        <template v-else>{{ GetDate.string(max, 'y-mm-d') }}</template>
       </v-chip>
     </template>
   </v-slider>
@@ -45,6 +44,7 @@ export default {
     },
 
     showTicks: Boolean,
+    hideMin: Boolean,
     hideMax: Boolean,
     hideLabel: Boolean,
   },
@@ -71,6 +71,13 @@ export default {
 
       let [endYear, endMonth] = [new Date(this.max).getFullYear(), new Date(this.max).getMonth()]
       return new Date(endYear, endMonth).valueOf()
+    },
+    getColors() {
+      return {
+        'track-color': '#bdbdbd',
+        'thumb-color': '#424242',
+        'track-fill-color': '#424242',
+      }
     },
     months_labels() {
       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
@@ -119,3 +126,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.v-slider-thumb__label {
+  width: max-content;
+}
+</style>

@@ -51,6 +51,7 @@ export const GetDate = {
     const string = date.toISOString().split("T")[0];
     if (format === "m-d") return `${string.split("-")[1]}-${string.split("-")[2]}`;
     if (format === "mm-d") return `${months[Number(string.split("-")[1]) - 1]} ${string.split("-")[2]}`;
+    if (format === "y-mm-d") return `${string.split("-")[0]} ${months[Number(string.split("-")[1]) - 1]} ${string.split("-")[2]}`;
     return string;
   },
 };

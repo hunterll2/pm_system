@@ -1,10 +1,11 @@
 <template>
-  <v-card :variant="'tonal'" :color="getColor" @dblclick="$emit('edit', item)" @click="itemClicked">
+  <v-card :variant="'tonal'" :color="getColor" class="mb-2" @dblclick="$emit('edit', item)"
+    @click="$emit('expand', expand ? undefined : item)">
     <v-card-text class="d-flex align-center text-h6 font-weight-regular">
 
       <v-list-item-action start>
         <v-checkbox-btn v-if="itemStarted" :model-value="itemDone" class="text-h5 mr-2"
-          @update:modelValue="$emit('item-check', item, $event)" @click.stop="" />
+          @update:modelValue="$emit('item-check', $event)" @click.stop="" />
         <v-chip>{{ budget }}</v-chip>
         <v-chip v-if="item.type === 'task'" class="ml-1">{{ actual_budget }}</v-chip>
       </v-list-item-action>
@@ -41,11 +42,10 @@ import { currency, GetDate } from '@/helpers/helpers.js'
 
 export default {
   props: {
+    expand: Boolean,
     item: Object,
-    expand: Boolean
   },
   data: () => ({
-    box: false
   }),
   computed: {
     GetDate() {
@@ -73,12 +73,6 @@ export default {
       else if (!this.itemStarted && this.item.type !== 'resource') return 'blue'
       else return undefined
     },
-
   },
-  methods: {
-    itemClicked() {
-      return this.item.type === 'task' ? this.$emit('expand', this.item, this.expand) : undefined
-    }
-  }
 }
 </script>
